@@ -1,0 +1,18 @@
+{
+  "cookiecutter": {
+    "project_name": "Gather Metadata",
+    "project_short_description": "Collector for generic metadata of HPC execution environment focussed on benchmarking.",
+    "project_slug": "gather-metadata",
+    "pkg_name": "gathermetadata",
+    "directory_name": "gathermetadata",
+    "author_name": "Dennis Terhorst",
+    "author_email": "d.terhorst@fz-juelich.de",
+    "license": {
+      "name": "GNU General Public License v3.0 only",
+      "spdx": "GPL-3.0-only"
+    },
+    "copyright_year": "2023",
+    "copyright_holder": "Forschungszentrum J\u00fclich GmbH, J\u00fclich, Germany",
+    "_template": "../cc-python-command-line-tool"
+  }
+}

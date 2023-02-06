@@ -26,7 +26,7 @@ setup(
 
     author="Dennis Terhorst",
     author_email="d.terhorst@fz-juelich.de",
-    description="Put a one-or-two sentence summary description here.",
+    description="Collector for generic metadata of HPC execution environment focussed on benchmarking.",
     long_description=long_description,
 
     entry_points={
@@ -42,7 +42,7 @@ setup(
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Science/Research',
-        'License :: OSI Approved :: {'name': 'GNU General Public License v3.0 only', 'spdx': 'GPL-3.0-only'}',
+        'License :: OSI Approved :: GPL-3.0-only',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
