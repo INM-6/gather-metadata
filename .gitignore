@@ -1,0 +1,6 @@
+conda/
+*.egg-info/
+__pycache__/
+.coverage
+build/
+*,cover
