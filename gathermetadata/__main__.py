@@ -72,6 +72,7 @@ recordables = {
     'getconf': 'getconf -a',
     'ulimit': 'ulimit -a',
     'modules': 'module list',
+    'ps-aux': 'ps aux',
 }
 
 
