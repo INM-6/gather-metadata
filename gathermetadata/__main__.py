@@ -72,6 +72,7 @@ recordables = {
     'getconf': 'getconf -a',
     'ulimit': 'ulimit -a',
     'modules': 'module list',
+    'scontrol': 'scontrol show jobid ${SLURM_JOBID} -d'
 }
 
 
