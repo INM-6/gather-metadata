@@ -62,6 +62,7 @@ recordables = {
     'conda-environment': 'conda env export',
     'hostname': 'hostname -f',
     'ompi_info': 'ompi_info',
+    'ompi_info-parsable': 'ompi_info --parsable',
     'ip-r': 'ip r',
     'ip-l': 'ip l',
     'nproc': 'nproc',
