@@ -74,6 +74,7 @@ recordables = {
     'modules': 'module list',
     'ps-aux': 'ps aux',
     'scontrol': 'scontrol show jobid ${SLURM_JOBID} -d',
+    'mpivars': 'mpivars',
 }
 
 
