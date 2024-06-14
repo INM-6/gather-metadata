@@ -72,7 +72,8 @@ recordables = {
     'getconf': 'getconf -a',
     'ulimit': 'ulimit -a',
     'modules': 'module list',
-    'scontrol': 'scontrol show jobid ${SLURM_JOBID} -d'
+    'ps-aux': 'ps aux',
+    'scontrol': 'scontrol show jobid ${SLURM_JOBID} -d',
 }
 
 
