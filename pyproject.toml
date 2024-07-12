@@ -1,0 +1,74 @@
+[project]
+name = "Gather Metadata"
+description = "Collector for generic metadata of HPC execution environment focussed on benchmarking."
+version = "0.1.0"
+readme = "README.md"
+authors = [
+    { name = "Dennis Terhorst", email = "d.terhorst@fz-juelich.de" }
+]
+
+requires-python = ">=3.8"
+dependencies = [
+    "GitPython",
+    "docopt-ng",
+    "ruamel.yaml"
+]
+
+[metadata]
+description-file = "README.md"
+classifiers = [
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GPL-3.0-or-later",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/INM-6/gather-metadata"
+"Bug Tracker" = "https://github.com/INM-6/gather-metadata/issues"
+
+[project.scripts]
+gathermetadata = "gathermetadata.__main__:main"
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "bump2version",
+    "flake8",
+    "mypy",
+    "pre-commit",
+    "pydocstyle",
+    "pylint",
+    "pytest",
+    "pytest-black",
+    "pytest-cov",
+    "pytest-flake8",
+    "pytest-mypy",
+    "pytest-pydocstyle",
+    "pytest-pylint",
+    "pytest-xdist",
+]
+doc = [
+    "sphinx",
+    "sphinx-autodoc-typehints",
+    "pygments",
+    "recommonmark",
+]
+
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.2,<4"]
+
+[tool.black]
+line-length = 120
+
+[tool.flake8]
+# This is ignored
+# see discussions around https://github.com/PyCQA/flake8/issues/234
+
+[tool.isort]
+atomic = true
+line_length = 120
+multi_line_output = 3
+profile = "black"
+skip_gitignore = true
