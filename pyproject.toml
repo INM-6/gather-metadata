@@ -72,3 +72,21 @@ line_length = 120
 multi_line_output = 3
 profile = "black"
 skip_gitignore = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --mypy --pylint --doctest-modules --pydocstyle --cov --ignore=conda --ignore=env --ignore=.git --ignore=__pycache__"
+norecursedirs = ".git _build venv tmp*"
+
+[tool.pylint]
+options = "unneeded-not, line-too-long, unnecessary-semicolon, trailing-whitespace, missing-final-newline, bad-indentation, multiple-statements, bare-except"
+
+[tool.pylint.MASTER]
+ignore-paths = '^venv/.*$'
+
+[tool.mypy]
+exclude = ".git/, .pytest_cache/, conda/, venv/"
+
+[tool.pydocstyle]
+convention = "numpy"
+add-ignore = "D300"

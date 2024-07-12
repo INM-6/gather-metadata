@@ -116,7 +116,7 @@ class Recorder:
                 try:
                     (stdout_data, stderr_data) = infile.communicate(timeout=self.timeout)
                 except TimeoutExpired:
-                    log.warning("%s: process did not finish in time! Output will be" "incomplete!", name)
+                    log.warning("%s: process did not finish in time! Output will be incomplete!", name)
                     infile.kill()
                     outs, errs = infile.communicate()
                     log.error("Final words on stdout:\n%s", outs)
