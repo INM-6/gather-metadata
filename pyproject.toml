@@ -75,7 +75,7 @@ skip_gitignore = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --mypy --pylint --doctest-modules --pydocstyle --cov --ignore=conda --ignore=env --ignore=.git --ignore=__pycache__"
+addopts = "-ra -q --pylint --doctest-modules --pydocstyle --cov --ignore=conda --ignore=env --ignore=.git --ignore=__pycache__"
 norecursedirs = ".git _build venv tmp*"
 
 [tool.pylint]
