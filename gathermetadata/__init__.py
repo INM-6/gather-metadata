@@ -1,6 +1,5 @@
 """
-Collector for generic metadata of HPC execution environment focussed on
-benchmarking.
+Collector for generic metadata of HPC execution environment.
 
 Add a longer description here.
 """

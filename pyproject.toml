@@ -1,5 +1,5 @@
 [project]
-name = "Gather Metadata"
+name = "gathermetadata"
 description = "Collector for generic metadata of HPC execution environment focussed on benchmarking."
 version = "0.1.0"
 readme = "README.md"
@@ -9,7 +9,6 @@ authors = [
 
 requires-python = ">=3.8"
 dependencies = [
-    "GitPython",
     "docopt-ng",
     "ruamel.yaml"
 ]
@@ -47,6 +46,7 @@ dev = [
     "pytest-pydocstyle",
     "pytest-pylint",
     "pytest-xdist",
+    "types-PyYAML",
 ]
 doc = [
     "sphinx",
