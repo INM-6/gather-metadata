@@ -37,10 +37,11 @@ import logging.config
 import os
 import shlex
 import time
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from pprint import pformat
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, TimeoutExpired
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Sequence
 
 from docopt import docopt  # type: ignore
 
@@ -95,6 +96,22 @@ _recordables = {
 }
 
 
+@dataclass
+class Result:  # pylint: disable=too-many-instance-attributes
+    "Result metadata."
+
+    name: str
+    command: str
+    starttime: float = field(default_factory=time.time)
+    exectime: Optional[float] = None
+    iotime: Optional[float] = None
+    success: bool = False
+    shell: Optional[Sequence[str]] = None
+    stdout_file: Optional[str] = None
+    stderr_file: Optional[str] = None
+    error_message: Optional[str] = None
+
+
 class Recorder:
     "Record metadata and handle all error cases."
 
@@ -144,20 +161,14 @@ class Recorder:
         """
         log.info("recording %s...", name)
 
-        starttime = time.time()
-        exectime = None
-        iotime = None
-        success = False
-        cmd = []
         stdout_data = None
         stderr_data = None
-        stdout_file = None
-        stderr_file = None
-        error = None
 
+        res = Result(name, command)
         try:
-            cmd = self.__make_command(name, command)
-            with Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
+            res.shell = self.__make_command(name, command)
+            assert res.shell  # required assert, otherwise shell may be None, which is not allowed in Popen
+            with Popen(res.shell, stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
                 try:
                     (stdout_data, stderr_data) = infile.communicate(timeout=self.timeout)
                 except TimeoutExpired:
@@ -167,41 +178,31 @@ class Recorder:
                     log.error("Final words on stdout:\n%s", outs)
                     log.error("Final words on stderr:\n%s", errs)
                 stoptime = time.time()
-                exectime = stoptime - starttime
+                res.exectime = stoptime - res.starttime
                 if infile.returncode != 0:
                     log.warning("%s: returned %s (non-zero)!", name, infile.returncode)
-                stdout_file = self._save_nonzero(name + ".out", stdout_data)
-                stderr_file = self._save_nonzero(name + ".err", stderr_data)
+                res.stdout_file = self._save_nonzero(name + ".out", stdout_data)
+                res.stderr_file = self._save_nonzero(name + ".err", stderr_data)
                 if stderr_data and self.errors_fatal:
                     log.fatal("ERRORS are configured to be fatal.")
                     raise ValueError("Process wrote errors to STDERR!")
-                iotime = time.time() - stoptime
-                success = True
+                res.iotime = time.time() - stoptime
+                res.success = True
         except KeyError as e:
             log.error("%s: called process failed! Undefined variable %s", name, e)
-            error = f"KeyError: Undefined variable {e}"
+            res.error_message = f"KeyError: Undefined variable {e}"
         except CalledProcessError as e:
             log.error("%s: called process failed! retrun code: %d", name, e.returncode)
-            error = f"CalledProcessError: retrun code: {e.returncode}"
+            res.error_message = f"CalledProcessError: retrun code: {e.returncode}"
         except FileNotFoundError as e:
             log.error("%s: %s", name, e)
-            error = f"FileNotFoundError: {e}"
+            res.error_message = f"FileNotFoundError: {e}"
         finally:
-            if exectime is not None and exectime > self.logtimethres:
-                log.info("%s execution took %.2f seconds", name, exectime)
-            if exectime is not None and iotime is not None and exectime + iotime > self.logtimethres:
-                log.info("%s execution+io took %.2f seconds", name, iotime)
-        return {
-            "name": name,
-            "command": command,
-            "exec": cmd,
-            "success": success,
-            "error_message": error,
-            "iotime": iotime,
-            "exectime": exectime,
-            "stdout_file": stdout_file,
-            "stderr_file": stderr_file,
-        }
+            if res.exectime is not None and res.exectime > self.logtimethres:
+                log.info("%s execution took %.2f seconds", name, res.exectime)
+            if res.exectime is not None and res.iotime is not None and res.exectime + res.iotime > self.logtimethres:
+                log.info("%s execution+io took %.2f seconds", name, res.iotime)
+        return asdict(res)
 
     def record_all(self, recordables: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
         "Iterate through all recordables and gather data safely."
