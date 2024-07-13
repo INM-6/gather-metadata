@@ -27,6 +27,7 @@ Options:
 """
 import logging
 import logging.config
+import os
 import shlex
 import time
 from pathlib import Path
@@ -55,25 +56,25 @@ except FileNotFoundError as exc:
     log.warning("using basic logging config due to exception %s", exc)
 
 _recordables = {
-    'date': 'date --iso=seconds',
-    'lshw': 'lshw -json -quiet',
-    'dmidecode': 'dmidecode',
-    'lspci': 'lspci -v',
-    'false': '/bin/false',
-    'broken': 'nothing',
-    'cpuinfo': 'cat /proc/cpuinfo',
-    'meminfo': 'cat /proc/meminfo',
-    'env-vars': '/usr/bin/env',
-    'ldd-nest': 'ldd nest',
-    'conda-environment': 'conda env export',
-    'hostname': 'hostname -f',
-    'ompi_info': 'ompi_info',
-    'ompi_info-parsable': 'ompi_info --parsable --all',
-    'ip-r': 'ip r',
-    'ip-l': 'ip l',
-    'nproc': 'nproc',
-    'hwloc-info': 'hwloc-info',
-    'hwloc-ls': 'hwloc-ls',
+    "date": "date --iso=seconds",
+    "lshw": "lshw -json -quiet",
+    "dmidecode": "dmidecode",
+    "lspci": "lspci -v",
+    "false": "/bin/false",
+    "broken": "nothing",
+    "cpuinfo": "cat /proc/cpuinfo",
+    "meminfo": "cat /proc/meminfo",
+    "env-vars": "/usr/bin/env",
+    "ldd-nest": "ldd nest",
+    "conda-environment": "conda env export",
+    "hostname": "hostname -f",
+    "ompi_info": "ompi_info",
+    "ompi_info-parsable": "ompi_info --parsable --all",
+    "ip-r": "ip r",
+    "ip-l": "ip l",
+    "nproc": "nproc",
+    "hwloc-info": "hwloc-info",
+    "hwloc-ls": "hwloc-ls",
     # 'hwloc-topology': 'hwloc-gather-topology {outdir}/hwloc-topology',
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
@@ -99,12 +100,29 @@ class Recorder:
 
     def __make_command(self, name, command):
         "Build a Popen compatible list to run the command."
-        parameters = {
-            "outdir": self.outdir,
-            "name": name,
-            "command": command,
-        }
+        parameters = os.environ.copy()
+        parameters.update(
+            {
+                "outdir": self.outdir,
+                "name": name,
+                "command": command,
+            }
+        )
         return shlex.split(command.format(**parameters))
+
+    def _save_nonzero(self, name, data):
+        """
+        Save data to file if non-zero.
+
+        Returns
+        -------
+        bool:   data has been written.
+        """
+        if data:
+            with open(self.outdir / name, "wb") as outfile:
+                outfile.write(data)
+                return True
+        return False
 
     def record(self, name: str, command: str):
         "Record output of a single command."
@@ -115,6 +133,8 @@ class Recorder:
         iotime = None
         try:
             with Popen(self.__make_command(name, command), stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
+                stdout_data = ""
+                stderr_data = ""
                 try:
                     (stdout_data, stderr_data) = infile.communicate(timeout=self.timeout)
                 except TimeoutExpired:
@@ -126,16 +146,13 @@ class Recorder:
                 stoptime = time.time()
                 if infile.returncode != 0:
                     log.warning("%s: returned %s (non-zero)!", name, infile.returncode)
-                with open(self.outdir / (name + ".out"), "wb") as outfile:
-                    outfile.write(stdout_data)
-                if stderr_data:
-                    with open(self.outdir / (name + ".err"), "wb") as errfile:
-                        log.warning("ERRORS recorded for %s", name)
-                        errfile.write(stderr_data)
-                        if self.errors_fatal:
-                            log.fatal("ERRORS are configured to be fatal.")
-                            raise ValueError("Process wrote errors to STDERR!")
+                self._save_nonzero(name + ".out", stdout_data)
+                if self._save_nonzero(name + ".err", stderr_data) and self.errors_fatal:
+                    log.fatal("ERRORS are configured to be fatal.")
+                    raise ValueError("Process wrote errors to STDERR!")
                 iotime = time.time()
+        except KeyError as e:
+            log.error("%s: called process failed! Undefined variable %s", name, e)
         except CalledProcessError as e:
             log.error("%s: called process failed! retrun code: %d", name, e.returncode)
         except FileNotFoundError as e:
