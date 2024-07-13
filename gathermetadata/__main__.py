@@ -22,9 +22,16 @@ Collector for generic metadata of HPC execution environment.
 Usage: gathermetadata [options] <outdir>
 
 Options:
-    -v, --verbose       increase output
-    -h, --help          print this text
+    --command-timeout=<sec>     maximum time to wait for command completion
+                                [default: 10]
+    --log-time-threshold=<sec>  minimum time of commands to be logged
+                                [default: 1]
+    --errors-fatal              make any errors abort metadata gathering
+    --no-result-json            do not add logging output in JSON format
+    -v, --verbose               increase output
+    -h, --help                  print this text
 """
+import json
 import logging
 import logging.config
 import os
@@ -33,9 +40,11 @@ import time
 from pathlib import Path
 from pprint import pformat
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, TimeoutExpired
-from typing import Dict
+from typing import Any, Dict, Optional
 
 from docopt import docopt  # type: ignore
+
+from . import __version__
 
 log = logging.getLogger()
 logging.basicConfig(level=logging.DEBUG)
@@ -89,10 +98,10 @@ _recordables = {
 class Recorder:
     "Record metadata and handle all error cases."
 
-    def __init__(self, outdir: str = "about", timeout: int = 3, errors_fatal: bool = False):
+    def __init__(self, outdir: str = "about", timeout: float = 3, errors_fatal: bool = False, logtimethres: float = 3):
         self.errors_fatal = errors_fatal
         self.timeout = timeout
-        self.logtimethres = 10  # seconds
+        self.logtimethres = logtimethres  # seconds
         self.outdir = Path(outdir or ".")
         if not self.outdir.is_dir():
             self.outdir.mkdir()
@@ -110,7 +119,7 @@ class Recorder:
         )
         return shlex.split(command.format(**parameters))
 
-    def _save_nonzero(self, name, data):
+    def _save_nonzero(self, name, data) -> Optional[str]:
         """
         Save data to file if non-zero.
 
@@ -118,23 +127,37 @@ class Recorder:
         -------
         bool:   data has been written.
         """
+        filename = None
         if data:
-            with open(self.outdir / name, "wb") as outfile:
+            filename = str(self.outdir / name)
+            with open(filename, "wb") as outfile:
                 outfile.write(data)
-                return True
-        return False
+        return filename
 
-    def record(self, name: str, command: str):
-        "Record output of a single command."
+    def record(self, name: str, command: str) -> Dict[str, Any]:
+        """
+        Record output of a single command.
+
+        Returns
+        -------
+        dict: dictionary with result metadata
+        """
         log.info("recording %s...", name)
 
         starttime = time.time()
-        stoptime = None
+        exectime = None
         iotime = None
+        success = False
+        cmd = []
+        stdout_data = None
+        stderr_data = None
+        stdout_file = None
+        stderr_file = None
+        error = None
+
         try:
-            with Popen(self.__make_command(name, command), stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
-                stdout_data = ""
-                stderr_data = ""
+            cmd = self.__make_command(name, command)
+            with Popen(cmd, stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
                 try:
                     (stdout_data, stderr_data) = infile.communicate(timeout=self.timeout)
                 except TimeoutExpired:
@@ -144,29 +167,48 @@ class Recorder:
                     log.error("Final words on stdout:\n%s", outs)
                     log.error("Final words on stderr:\n%s", errs)
                 stoptime = time.time()
+                exectime = stoptime - starttime
                 if infile.returncode != 0:
                     log.warning("%s: returned %s (non-zero)!", name, infile.returncode)
-                self._save_nonzero(name + ".out", stdout_data)
-                if self._save_nonzero(name + ".err", stderr_data) and self.errors_fatal:
+                stdout_file = self._save_nonzero(name + ".out", stdout_data)
+                stderr_file = self._save_nonzero(name + ".err", stderr_data)
+                if stderr_data and self.errors_fatal:
                     log.fatal("ERRORS are configured to be fatal.")
                     raise ValueError("Process wrote errors to STDERR!")
-                iotime = time.time()
+                iotime = time.time() - stoptime
+                success = True
         except KeyError as e:
             log.error("%s: called process failed! Undefined variable %s", name, e)
+            error = f"KeyError: Undefined variable {e}"
         except CalledProcessError as e:
             log.error("%s: called process failed! retrun code: %d", name, e.returncode)
+            error = f"CalledProcessError: retrun code: {e.returncode}"
         except FileNotFoundError as e:
             log.error("%s: %s", name, e)
+            error = f"FileNotFoundError: {e}"
         finally:
-            if stoptime and starttime and stoptime - starttime > self.logtimethres:
-                log.info("%s execution took %s seconds", name, stoptime - starttime)
-            if iotime and stoptime and iotime - stoptime > self.logtimethres:
-                log.info("%s io took %s seconds", name, stoptime - starttime)
+            if exectime is not None and exectime > self.logtimethres:
+                log.info("%s execution took %.2f seconds", name, exectime)
+            if exectime is not None and iotime is not None and exectime + iotime > self.logtimethres:
+                log.info("%s execution+io took %.2f seconds", name, iotime)
+        return {
+            "name": name,
+            "command": command,
+            "exec": cmd,
+            "success": success,
+            "error_message": error,
+            "iotime": iotime,
+            "exectime": exectime,
+            "stdout_file": stdout_file,
+            "stderr_file": stderr_file,
+        }
 
-    def record_all(self, recordables: Dict[str, str]):
+    def record_all(self, recordables: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
         "Iterate through all recordables and gather data safely."
+        results = {}
         for recordable in recordables.items():
-            self.record(*recordable)
+            results[recordable[0]] = self.record(*recordable)
+        return results
 
 
 def main():
@@ -177,8 +219,36 @@ def main():
     log.debug(pformat(args))
 
     log.info("Gathering metadata...")
-    recorder = Recorder(outdir=args["<outdir>"])
-    recorder.record_all(_recordables)
+    starttime = time.time()
+    starttimestamp = time.ctime()
+
+    recorder = Recorder(
+        outdir=args["<outdir>"],
+        logtimethres=float(args["--log-time-threshold"]),
+        timeout=float(args["--command-timeout"]),
+        errors_fatal=args["--errors-fatal"],
+    )
+
+    results = recorder.record_all(_recordables)
+
+    if not args["--no-result-json"]:
+        resultfile = Path(args["<outdir>"]) / "gather.json"
+        log.info("writing result metadata to %s...", resultfile)
+        with resultfile.open("w", encoding="utf8") as outfile:
+            json.dump(
+                {
+                    "version": __version__,
+                    "args": args,
+                    "run": {
+                        "start": starttime,
+                        "at": starttimestamp,
+                        "total_time": time.time() - starttime,
+                    },
+                    "results": results,
+                },
+                outfile,
+                indent=2,
+            )
 
 
 if __name__ == "__main__":
