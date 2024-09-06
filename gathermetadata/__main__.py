@@ -85,7 +85,8 @@ _recordables = {
     "nproc": "nproc",
     "hwloc-info": "hwloc-info",
     "hwloc-ls": "hwloc-ls",
-    # 'hwloc-topology': 'hwloc-gather-topology {outdir}/hwloc-topology',
+    "hwloc-topology": "hwloc-gather-topology {outdir}/hwloc-topology",
+    "pip-list": "pip list --format json",
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
     "ulimit": "ulimit -a",
@@ -106,6 +107,7 @@ class Result:  # pylint: disable=too-many-instance-attributes
     exectime: Optional[float] = None
     iotime: Optional[float] = None
     success: bool = False
+    return_code: Optional[int] = None
     shell: Optional[Sequence[str]] = None
     stdout_file: Optional[str] = None
     stderr_file: Optional[str] = None
@@ -177,6 +179,8 @@ class Recorder:
                     outs, errs = infile.communicate()
                     log.error("Final words on stdout:\n%s", outs)
                     log.error("Final words on stderr:\n%s", errs)
+                    stdout_data = outs
+                    stderr_data = errs
                 stoptime = time.time()
                 res.exectime = stoptime - res.starttime
                 if infile.returncode != 0:
@@ -187,6 +191,7 @@ class Recorder:
                     log.fatal("ERRORS are configured to be fatal.")
                     raise ValueError("Process wrote errors to STDERR!")
                 res.iotime = time.time() - stoptime
+                res.return_code = infile.returncode
                 res.success = True
         except KeyError as e:
             log.error("%s: called process failed! Undefined variable %s", name, e)
@@ -194,6 +199,7 @@ class Recorder:
         except CalledProcessError as e:
             log.error("%s: called process failed! retrun code: %d", name, e.returncode)
             res.error_message = f"CalledProcessError: retrun code: {e.returncode}"
+            res.return_code = e.returncode
         except FileNotFoundError as e:
             log.error("%s: %s", name, e)
             res.error_message = f"FileNotFoundError: {e}"
