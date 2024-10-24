@@ -80,6 +80,7 @@ _recordables = {
     "hostname": "hostname -f",
     "ompi_info": "ompi_info",
     "ompi_info-parsable": "ompi_info --parsable --all",
+    "lsmod", "lsmod",
     "ip-r": "ip r",
     "ip-l": "ip l",
     "nproc": "nproc",
