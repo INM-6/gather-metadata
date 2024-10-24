@@ -91,6 +91,8 @@ _recordables = {
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
     "ulimit": "ulimit -a",
+    "ucx_info-v": "ucx_info -v",
+    "ucx_info-c": "ucx_info -c",
     "modules": "module list",
     "ps-aux": "ps aux",
     "scontrol": "scontrol show jobid ${SLURM_JOBID} -d",
