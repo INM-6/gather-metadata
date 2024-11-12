@@ -97,6 +97,7 @@ _recordables = {
     "ps-aux": "ps aux",
     "scontrol": "scontrol show jobid ${SLURM_JOBID} -d",
     "mpivars": "mpivars",
+    "pldd-nest": "python -c \"import nest, subprocess as s, os; s.check_call(['/usr/bin/pldd', str(os.getpid())])\"",
 }
 
 
