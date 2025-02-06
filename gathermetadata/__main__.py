@@ -86,7 +86,9 @@ _recordables = {
     "nproc": "nproc",
     "hwloc-info": "hwloc-info",
     "hwloc-ls": "hwloc-ls",
-    "hwloc-topology": "hwloc-gather-topology {outdir}/hwloc-topology",
+    # hwloc-topology is extremely slow on machines with high number of cores.
+    # We should consider putting this into a group of --slow commands.
+    #"hwloc-topology": "hwloc-gather-topology {outdir}/hwloc-topology",
     "pip-list": "pip list --format json",
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
