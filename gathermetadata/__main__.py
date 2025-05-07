@@ -88,7 +88,7 @@ _recordables = {
     "hwloc-ls": "hwloc-ls",
     # hwloc-topology is extremely slow on machines with high number of cores.
     # We should consider putting this into a group of --slow commands.
-    #"hwloc-topology": "hwloc-gather-topology {outdir}/hwloc-topology",
+    # "hwloc-topology": "hwloc-gather-topology {outdir}/hwloc-topology",
     "pip-list": "pip list --format json",
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
@@ -96,6 +96,7 @@ _recordables = {
     "ucx_info-v": "ucx_info -v",
     "ucx_info-c": "ucx_info -c",
     "modules": "module list",
+    "proc-sys-kernel": "bash -c 'cp -r /proc/sys/kernel {outdir}/{name}; chmod -R u+w {outdir}/{name}'",
     "ps-aux": "ps aux",
     "scontrol": "scontrol show jobid ${SLURM_JOBID} -d",
     "mpivars": "mpivars",
