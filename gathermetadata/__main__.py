@@ -84,6 +84,8 @@ _recordables = {
     "ip-r": "ip r",
     "ip-l": "ip l",
     "nproc": "nproc",
+    "mumactl-show": "numactl --show",
+    "mumastat": "numastat",
     "hwloc-info": "hwloc-info",
     "hwloc-ls": "hwloc-ls",
     # hwloc-topology is extremely slow on machines with high number of cores.
