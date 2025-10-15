@@ -67,6 +67,7 @@ except FileNotFoundError as exc:
 
 _recordables = {
     "date": "date --iso=seconds",
+    "sysctl-a": "sysctl -a",
     "lshw": "lshw -json -quiet",
     "dmidecode": "dmidecode",
     "lspci": "lspci -v",
