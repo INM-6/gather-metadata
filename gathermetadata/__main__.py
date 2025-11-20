@@ -87,6 +87,9 @@ _recordables = {
     "nproc": "nproc",
     "mumactl-show": "numactl --show",
     "mumastat": "numastat",
+    "lscpu-json": "lscpu --json --output-all",
+    "lscpu-extended-json": "lscpu --json --output-all --bytes --extended",
+    "lscpu-caches-json": "lscpu --json --output-all --bytes --caches",
     "hwloc-info": "hwloc-info",
     "hwloc-ls": "hwloc-ls",
     # hwloc-topology is extremely slow on machines with high number of cores.
