@@ -19,8 +19,7 @@ pip install git+ssh://git@github.com/INM-6/gather-metadata.git
 ```
 
 If SSH is not available, use
-`git+https://$TOKEN@github.com/INM-6/gather-metadata.git` together with a
-GitHub Personal Access Token (PAT).
+`git+https://github.com/INM-6/gather-metadata.git`.
 
 
 ## Usage
@@ -32,8 +31,8 @@ useful to already extract rudimentary first metadata to annotate the run.
 
 
 ```bash
-gathermetadata about;
-tar -czf some-run-id-or-so.tgz about && rm -rf about
+gathermetadata metadata;
+tar -czf some-run-id-or-so.tgz about && rm -rf metadata
 ```
 
 ## Customizations & Contributions
