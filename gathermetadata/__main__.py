@@ -107,7 +107,8 @@ _recordables = {
     "scontrol": "scontrol show jobid ${SLURM_JOBID} -d",
     "mpivars": "mpivars",
     "pldd-nest": "python -c \"import nest, subprocess as s, os; s.check_call(['/usr/bin/pldd', str(os.getpid())])\"",
-    "malloc_conf_json": "MALLOC_CONF='stats_print:true' /bin/true", # see https://jemalloc.net/jemalloc.3.html#opt.stats_print
+    # see https://jemalloc.net/jemalloc.3.html#opt.stats_print
+    "malloc_conf_json": "MALLOC_CONF='stats_print:true' /bin/true",
 }
 
 
