@@ -102,7 +102,7 @@ _recordables = {
     "ucx_info-v": "ucx_info -v",
     "ucx_info-c": "ucx_info -c",
     "modules": "module list",
-    "proc-sys-kernel": "bash -c 'cp -r /proc/sys/kernel {outdir}/{name}; chmod -R u+w {outdir}/{name}'",
+    "proc-sys-kernel": "bash -c 'cp -r --copy-contents /proc/sys/kernel {outdir}/{name}; chmod -R u+w {outdir}/{name}'",
     "ps-aux": "ps aux",
     "scontrol": "scontrol show jobid ${SLURM_JOBID} -d",
     "mpivars": "mpivars",
