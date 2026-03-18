@@ -31,6 +31,7 @@ Options:
     -v, --verbose               increase output
     -h, --help                  print this text
 """
+
 import json
 import logging
 import logging.config
@@ -185,7 +186,7 @@ class Recorder:
             assert res.shell  # required assert, otherwise shell may be None, which is not allowed in Popen
             with Popen(res.shell, stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
                 try:
-                    (stdout_data, stderr_data) = infile.communicate(timeout=self.timeout)
+                    stdout_data, stderr_data = infile.communicate(timeout=self.timeout)
                 except TimeoutExpired:
                     log.warning("%s: process did not finish in time! Output will be incomplete!", name)
                     infile.kill()
