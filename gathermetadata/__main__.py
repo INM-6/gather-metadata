@@ -108,7 +108,7 @@ _recordables = {
     "mpivars": "mpivars",
     "pldd-nest": "python -c \"import nest, subprocess as s, os; s.check_call(['/usr/bin/pldd', str(os.getpid())])\"",
     # see https://jemalloc.net/jemalloc.3.html#opt.stats_print
-    "malloc_conf_json": "MALLOC_CONF='stats_print:true,stats_print_opts:J' /bin/true",
+    "malloc_conf_json": 'MALLOC_CONF="${MALLOC_CONF:+$MALLOC_CONF,}stats_print:true,stats_print_opts:J" /bin/true',
 }
 
 
