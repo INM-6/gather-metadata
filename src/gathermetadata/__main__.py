@@ -31,6 +31,7 @@ Options:
     -v, --verbose               increase output
     -h, --help                  print this text
 """
+
 import json
 import logging
 import logging.config
@@ -99,14 +100,17 @@ _recordables = {
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
     "ulimit": "ulimit -a",
+    "slurm-version": "srun --version",
     "ucx_info-v": "ucx_info -v",
     "ucx_info-c": "ucx_info -c",
     "modules": "module list",
-    "proc-sys-kernel": "bash -c 'cp -r /proc/sys/kernel {outdir}/{name}; chmod -R u+w {outdir}/{name}'",
+    "proc-sys-kernel": "bash -c 'cp -r --copy-contents /proc/sys/kernel {outdir}/{name}; chmod -R u+w {outdir}/{name}'",
     "ps-aux": "ps aux",
     "scontrol": "scontrol show jobid ${SLURM_JOBID} -d",
     "mpivars": "mpivars",
     "pldd-nest": "python -c \"import nest, subprocess as s, os; s.check_call(['/usr/bin/pldd', str(os.getpid())])\"",
+    # see https://jemalloc.net/jemalloc.3.html#opt.stats_print
+    "malloc_conf_json": 'MALLOC_CONF="${MALLOC_CONF:+$MALLOC_CONF,}stats_print:true,stats_print_opts:J" /bin/true',
 }
 
 
@@ -185,7 +189,7 @@ class Recorder:
             assert res.shell  # required assert, otherwise shell may be None, which is not allowed in Popen
             with Popen(res.shell, stdout=PIPE, stderr=PIPE, stdin=DEVNULL) as infile:
                 try:
-                    (stdout_data, stderr_data) = infile.communicate(timeout=self.timeout)
+                    stdout_data, stderr_data = infile.communicate(timeout=self.timeout)
                 except TimeoutExpired:
                     log.warning("%s: process did not finish in time! Output will be incomplete!", name)
                     infile.kill()
