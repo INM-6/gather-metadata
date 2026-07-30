@@ -99,6 +99,7 @@ _recordables = {
     "lstopo": "lstopo --of ascii {outdir}/{name}",
     "getconf": "getconf -a",
     "ulimit": "ulimit -a",
+    "slurm-version": "srun --version",
     "ucx_info-v": "ucx_info -v",
     "ucx_info-c": "ucx_info -c",
     "modules": "module list",
