@@ -29,10 +29,17 @@ all information into it. You can nicely zip it and store it together with the
 other result data. The intermediate folder is not needed anymore, but may be
 useful to already extract rudimentary first metadata to annotate the run.
 
+```bash
+gathermetadata metadata
+```
+
+Possibly you want to run metadata collection again after your actual run, so
+right before the end of the job you might add another line before packing
+results:
 
 ```bash
-gathermetadata metadata;
-tar -czf some-run-id-or-so.tgz about && rm -rf metadata
+gathermetadata metadata-after
+tar -czf ../some-run-id-or-so.tgz ./
 ```
 
 ## Customizations & Contributions
