@@ -36,14 +36,14 @@ dev = [
     "flake8",
     "mypy",
     "pre-commit",
-    "pydocstyle",
+    "ruff",
     "pylint",
     "pytest",
     "pytest-black",
     "pytest-cov",
     "pytest-flake8",
     "pytest-mypy",
-    "pytest-pydocstyle",
+    "pytest-ruff",
     "pytest-pylint",
     "pytest-xdist",
     "types-PyYAML",
@@ -75,15 +75,18 @@ skip_gitignore = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--mypy --pylint --pydocstyle --cov --ignore=conda --ignore=venv --ignore=.git --ignore=__pycache__"
+addopts = "--mypy --pylint --ruff --cov --ignore=conda --ignore=venv --ignore=.git --ignore=__pycache__"
 norecursedirs = ".git _build venv tmp*"
 
 [tool.mypy]
 exclude = ".git/, .pytest_cache/, conda/, venv/"
 
-[tool.pydocstyle]
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
-add-ignore = "D300"
 
 [tool.pylint.main]
 # Analyse import fallback blocks. This can be used to support both Python 2 and 3

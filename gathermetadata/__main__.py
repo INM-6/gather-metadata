@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding: utf8
 
 # beNNch - Unified execution, collection, analysis and
 # comparison of neural network simulation benchmarks.
@@ -38,11 +37,12 @@ import logging.config
 import os
 import shlex
 import time
+from collections.abc import Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from pprint import pformat
 from subprocess import DEVNULL, PIPE, CalledProcessError, Popen, TimeoutExpired
-from typing import Any, Dict, Optional, Sequence
+from typing import Any
 
 from docopt import docopt  # type: ignore
 
@@ -128,20 +128,26 @@ class Result:  # pylint: disable=too-many-instance-attributes
     name: str
     command: str
     starttime: float = field(default_factory=time.time)
-    exectime: Optional[float] = None
-    iotime: Optional[float] = None
+    exectime: float | None = None
+    iotime: float | None = None
     success: bool = False
-    return_code: Optional[int] = None
-    shell: Optional[Sequence[str]] = None
-    stdout_file: Optional[str] = None
-    stderr_file: Optional[str] = None
-    error_message: Optional[str] = None
+    return_code: int | None = None
+    shell: Sequence[str] | None = None
+    stdout_file: str | None = None
+    stderr_file: str | None = None
+    error_message: str | None = None
 
 
 class Recorder:
     "Record metadata and handle all error cases."
 
-    def __init__(self, outdir: str = "about", timeout: float = 3, errors_fatal: bool = False, logtimethres: float = 3):
+    def __init__(
+        self,
+        outdir: str = "about",
+        timeout: float = 3,
+        errors_fatal: bool = False,
+        logtimethres: float = 3,
+    ):
         self.errors_fatal = errors_fatal
         self.timeout = timeout
         self.logtimethres = logtimethres  # seconds
@@ -162,7 +168,7 @@ class Recorder:
         )
         return shlex.split(command.format(**parameters))
 
-    def _save_nonzero(self, name, data) -> Optional[str]:
+    def _save_nonzero(self, name, data) -> str | None:
         """
         Save data to file if non-zero.
 
@@ -177,7 +183,7 @@ class Recorder:
                 outfile.write(data)
         return filename
 
-    def record(self, name: str, command: str) -> Dict[str, Any]:
+    def record(self, name: str, command: str) -> dict[str, Any]:
         """
         Record output of a single command.
 
@@ -234,7 +240,7 @@ class Recorder:
                 log.info("%s execution+io took %.2f seconds", name, res.iotime)
         return asdict(res)
 
-    def record_all(self, recordables: Dict[str, str]) -> Dict[str, Dict[str, Any]]:
+    def record_all(self, recordables: dict[str, str]) -> dict[str, dict[str, Any]]:
         "Iterate through all recordables and gather data safely."
         results = {}
         for recordable in recordables.items():
