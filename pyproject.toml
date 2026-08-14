@@ -38,7 +38,7 @@ dev = [
     "pre-commit",
     "ruff",
     "pylint",
-    "pytest",
+    "pytest<9.1",
     "pytest-black",
     "pytest-cov",
     "pytest-flake8",
